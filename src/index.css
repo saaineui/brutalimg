@@ -31,7 +31,7 @@ a, a img, nav, .thumbnail, line, .btn { transition-property: opacity, background
         .btn { font-size: 1em; padding: 0.25em 1em; background: #fff; box-shadow: none; border: 1px solid #000; border-radius: 1em; -moz-border-radius: 1em; -webkit-border-radius: 1em; -o-border-radius: 1em; font-family: inherit; cursor: pointer; outline: none; }
         .btn:hover { color: #ccc; border-color: #ccc; }
         
-        #errors { display: none; margin: 1em auto; }
+        #errors { margin: 1em auto; }
         
         /* Thumbnails */
         #thumbnails, .thumbnail, img { position: relative; }
@@ -50,7 +50,6 @@ a, a img, nav, .thumbnail, line, .btn { transition-property: opacity, background
 	   height: 100%;
 	   top: 0;
 	   left: 0;
-	   display: none;
 	   background-position: center center;
 	   background-repeat: no-repeat;
 	   background-color: rgba(0,0,0,0.9);
@@ -85,7 +84,6 @@ a, a img, nav, .thumbnail, line, .btn { transition-property: opacity, background
             bottom: 0;
             width: 100%;
         }
-        #image-title span { display: none; }
         .info-icon { font-family: "Helvetica Neue", Helvetica, sans-serif; display: block; font-size: 0.8em; line-height: 0.8em; padding: 0.1em 0em; width: 1.1em; height: 1.1em; border-radius: 0.55em; background: #fff; color: #000; margin: 0 auto; }
         nav#prev {
 	   left: 0;

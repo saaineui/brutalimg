@@ -4,6 +4,6 @@ import App from './App';
 import './index.css';
 
 ReactDOM.render(
-  <App search_term="brutalism" />,
+  <App searchTerm="brutalism" />,
   document.getElementById('root')
 );
