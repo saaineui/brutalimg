@@ -17,24 +17,28 @@ export default class Lightbox extends Component {
     
   render() {
     return (
-        <div id="lightbox" style={{backgroundImage: 'url('+this.props.currentImage.image+')'}}>
-            <nav id="prev">
+        <div id="lightbox" style={{backgroundImage: 'url('+this.props.image.image+')'}}>
+            {this.props.hasPreviousImage &&
+            <nav id="prev" onClick={this.props.viewPreviousImage}>
                 <svg className="lightbox-icon" viewBox="0 0 48 13" xmlns="http://www.w3.org/2000/svg">
                     <line x1="12" y1="0" x2="0" y2="12" />
                     <line x1="0" y1="12" x2="48" y2="12" />
                 </svg> 
                 Previous
             </nav>
-            <nav id="next">
+            }
+            {this.props.hasNextImage &&
+            <nav id="next" onClick={this.props.viewNextImage}>
                 <svg className="lightbox-icon" viewBox="0 0 48 13" xmlns="http://www.w3.org/2000/svg">
                     <line x1="36" y1="0" x2="48" y2="12" />
                     <line x1="0" y1="12" x2="48" y2="12" />
                 </svg> 
                 Next
             </nav>
+            }
             <div id="image-title" onClick={this.toggleTitle}>
                 {this.state.titleVisible ?
-                    this.props.currentImage.title
+                    this.props.image.title
                     :
                     <div aria-label="View info" className="info-icon" title="View info">i</div>
                 }

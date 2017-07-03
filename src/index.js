@@ -4,6 +4,6 @@ import App from './App';
 import './index.css';
 
 ReactDOM.render(
-  <App searchTerm="brutalism" />,
+  <App searchTerm="space cats" />,
   document.getElementById('root')
 );
