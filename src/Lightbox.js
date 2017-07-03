@@ -6,8 +6,15 @@ export default class Lightbox extends Component {
     this.state = {
       titleVisible: false
     };
+
+    this.toggleTitle = this.toggleTitle.bind(this);
   }
   
+  toggleTitle() {
+    var currentTitleVisible = this.state.titleVisible;
+    this.setState({titleVisible: !currentTitleVisible});
+  }
+    
   render() {
     return (
         <div id="lightbox" style={{backgroundImage: 'url('+this.props.currentImage.image+')'}}>
@@ -25,7 +32,7 @@ export default class Lightbox extends Component {
                 </svg> 
                 Next
             </nav>
-            <div id="image-title">
+            <div id="image-title" onClick={this.toggleTitle}>
                 {this.state.titleVisible ?
                     this.props.currentImage.title
                     :
