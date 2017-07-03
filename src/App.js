@@ -1,14 +1,21 @@
 import React, { Component } from 'react';
+import Thumbnail from './Thumbnail';
 import './App.css';
+
+const thumbnails = [{image: "https://s-media-cache-ak0.pinimg.com/736x/82/57/a2/8257a2128cca2cbe64af5d71122d6ffa--brutalism-portsmouth.jpg", title: "image 1"}, {image: "https://s-media-cache-ak0.pinimg.com/originals/ae/dd/16/aedd16ebd17785abf47c60065e206728.jpg", title: "image 2"}]
+const renderThumbnails = thumbnails.map((thumbnail, index) =>
+  <Thumbnail key={index} image={thumbnail.image} title={thumbnail.title} />
+);
 
 class App extends Component {
   render() {
     return (
       <div className="App">
-        <h1>Slack - Lightbox - SS</h1>
-        <h2>&ldquo;brutalism&rdquo;</h2>
+        <h1>SS Lightbox - React</h1>
+        <h2>&ldquo;{this.props.search_term}&rdquo;</h2>
     
         <div id="thumbnails" className="clearfix">
+            {renderThumbnails}
         </div>
     
         <div aria-hidden="true" id="errors">
