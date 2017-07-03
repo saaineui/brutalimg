@@ -11,16 +11,6 @@ var query_params = ['searchType=image'];
 query_params.push('key='+GCSE_KEY);
 query_params.push('cx='+GCSE_CX);
 
-  function formatImageResults(items) {
-      var images = [];
-      
-      items.forEach(function(item, index){
-          var image = {key: index, image: item.link, title: item.title, landscape: item.image.height < item.image.width};
-          images.push(image);
-      });
-      return images;
-  }
-    
 
 
 class App extends Component {
@@ -78,11 +68,11 @@ class App extends Component {
              var image_results = JSON.parse(request.responseText);
          
              if (image_results.hasOwnProperty("items")) {
-                 var images = self.state.images.concat(formatImageResults(image_results.items));
+                 self.addImagesAndUpdateState(image_results.items);
+                 
                  var hasNextPageStartIndex = image_results.hasOwnProperty("queries") && image_results.queries.hasOwnProperty("nextPage") && image_results.queries.nextPage.length > 0 && image_results.queries.nextPage[0].hasOwnProperty("startIndex");
                  var startIndex = hasNextPageStartIndex ? image_results.queries.nextPage[0].startIndex : self.state.startIndex;
-                 
-                 self.setState({images: images, startIndex: startIndex, moreImagesBtnVisible: hasNextPageStartIndex});
+                 self.setState({startIndex: startIndex, moreImagesBtnVisible: hasNextPageStartIndex});
              } else {
                  self.show_error_message();
              }       
@@ -92,6 +82,16 @@ class App extends Component {
      };
      request.onerror = () => self.show_error_message();
      request.send();
+  }
+    
+  addImagesAndUpdateState(items) {
+      var images = this.state.images;      
+      items.forEach(function(item){
+          var image = {key: images.length, image: item.link, title: item.title, landscape: item.image.height < item.image.width};
+          images.push(image);
+      });
+      
+      this.setState({images: images});
   }
     
   show_error_message() {
