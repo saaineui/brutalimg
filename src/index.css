@@ -4,7 +4,7 @@ html {
     padding: 0;
 }
 body {
-    margin: 1em auto;
+    margin: 1em auto 0px auto;
     padding: 0;
     font-size: 1em;  
     font-family: Playfair Display, "Helvetica Neue", Helvetica, sans-serif;
@@ -23,7 +23,7 @@ body {
 a, a img, nav, .thumbnail, line, .btn { transition-property: opacity, background, color, stroke, border; transition-duration: 0.20s; transition-timing-function: ease-out; -webkit-transition-property: opacity, background, color, stroke, border; -webkit-transition-duration: 0.20s; -webkit-transition-timing-function: ease-out; -moz-transition-property: opacity, background, color, stroke, border; -moz-transition-duration: 0.20s; -moz-transition-timing-function: ease-out; -o-transition-property: opacity, background, color, stroke, border; -o-transition-duration: 0.20s; -o-transition-timing-function: ease-out; }
 
 /* Smart Boxes */
-#image-title, .thumbnail, img, .info-icon { box-sizing: border-box; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; -o-box-sizing: border-box; }        
+#image-title, .thumbnail, img, .info-icon, form.search-form { box-sizing: border-box; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; -o-box-sizing: border-box; }        
 
         h1, h2 { font-weight: 400; }
         h2 { border-top: 1px solid #000; border-bottom: 1px solid #000; }
@@ -106,6 +106,10 @@ a, a img, nav, .thumbnail, line, .btn { transition-property: opacity, background
         #close svg.lightbox-icon { width: 24px; height: 24px; }
         svg.lightbox-icon line { stroke: #fff; stroke-width: 1px; }
         nav:hover svg.lightbox-icon line { stroke: #444; }
+
+        /* Search Form */
+form.search-form { width: 100%; padding: 1em; margin: 1em auto 0px auto; background: #efefef; }
+form.search-form input[type=text] { margin: 1em; padding: 1em; border-radius: 3px; border: none; font-family: inherit; }
         
         @media (orientation: portrait) {
             #lightbox.fit-on-screen { background-size: 95% auto; }

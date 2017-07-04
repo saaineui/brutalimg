@@ -62,6 +62,7 @@ class App extends Component {
      var self = this;
 
      var request = new XMLHttpRequest();
+      console.log(temp_query_params.join('&'));
      request.open('GET', GCSE_URI+'?'+temp_query_params.join('&'), true);
      request.onload = function() {
          if (request.status >= 200 && request.status < 400) {
@@ -70,7 +71,10 @@ class App extends Component {
              if (image_results.hasOwnProperty("items")) {
                  self.addImagesAndUpdateState(image_results.items);
                  
-                 var hasNextPageStartIndex = image_results.hasOwnProperty("queries") && image_results.queries.hasOwnProperty("nextPage") && image_results.queries.nextPage.length > 0 && image_results.queries.nextPage[0].hasOwnProperty("startIndex");
+                 var hasNextPageStartIndex =    image_results.hasOwnProperty("queries") &&     
+                                                image_results.queries.hasOwnProperty("nextPage") && 
+                                                image_results.queries.nextPage.length > 0 && 
+                                                image_results.queries.nextPage[0].hasOwnProperty("startIndex");
                  var startIndex = hasNextPageStartIndex ? image_results.queries.nextPage[0].startIndex : self.state.startIndex;
                  self.setState({startIndex: startIndex, moreImagesBtnVisible: hasNextPageStartIndex});
              } else {
@@ -105,7 +109,7 @@ class App extends Component {
     
     return (
       <div className="App">
-        <h1>SS Lightbox - React</h1>
+        <h1>React Lightbox</h1>
         <h2>&ldquo;{this.props.searchTerm}&rdquo;</h2>
     
         <div id="thumbnails" className="clearfix">
@@ -131,6 +135,13 @@ class App extends Component {
                 hasPreviousImage={this.state.currentImageIndex > 0}
             />
         }
+        <form className="search-form" method="get">
+            <label htmlFor="searchTerm">
+                Search for images related to: 
+                <input type="text" name="searchTerm" />
+                <input type="submit" value="Search" className="btn" />
+            </label>
+        </form>
     </div>
     );
   }
