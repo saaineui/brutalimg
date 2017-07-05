@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import Thumbnail from './Thumbnail';
 import Lightbox from './Lightbox';
+import LoadingIndicator from './LoadingIndicator';
 import './App.css';
 
 const GCSE_URI = 'https://www.googleapis.com/customsearch/v1';
@@ -10,6 +11,9 @@ const GCSE_KEY = 'redacted';
 var query_params = ['searchType=image'];
 query_params.push('key='+GCSE_KEY);
 query_params.push('cx='+GCSE_CX);
+
+var Promise = require("bluebird");
+Promise.config({ longStackTraces: true, warnings: true });
 
     function is_larger_than_window(img) {
         return (img.naturalHeight > window.innerHeight) || (img.naturalWidth > window.innerWidth);
@@ -27,7 +31,8 @@ class App extends Component {
       currentImageIndex: null,
       startIndex: 1,
       images: [],
-      currentImageLarge: false
+      currentImageLarge: false, 
+      searching: false
     };
       
     this.openLightbox = this.openLightbox.bind(this);
@@ -67,39 +72,43 @@ class App extends Component {
       this.setState({currentImageLarge: is_larger_than_window(currentImage)});
   }
     
+  newSearch() {
+      this.setState({errorMessageVisible: false, searching: true}, () => this.moreImages());
+  }
+    
   moreImages() {
-     if (this.state.errorMessageVisible)
-         this.setState({errorMessageVisible: false});
-      
      var temp_query_params = [].concat(query_params);
      temp_query_params.push('q='+this.props.searchTerm);
      temp_query_params.push('start='+this.state.startIndex.toString());
      var self = this;
 
-     var request = new XMLHttpRequest();
-     request.open('GET', GCSE_URI+'?'+temp_query_params.join('&'), true);
-     request.onload = function() {
-         if (request.status >= 200 && request.status < 400) {
-             var image_results = JSON.parse(request.responseText);
-         
-             if (image_results.hasOwnProperty("items")) {
-                 self.addImagesAndUpdateState(image_results.items);
+     var promise = new Promise(function (resolve, reject) {
+        var request = new XMLHttpRequest();       
+        request.addEventListener("error", reject);
+        request.addEventListener("load", resolve);
+        request.open('GET', GCSE_URI+'?'+temp_query_params.join('&'), true);
+        request.send();
+     });
+      
+     promise.then(function(request){
+            if (request.status >= 200 && request.status < 400) 
+                return request.responseText;
+     })
+     .then(function(responseText){ return JSON.parse(responseText); })
+     .then(function(image_results){
+            if (image_results.hasOwnProperty("items"))
+                return image_results;
+     })
+     .then(function(image_results){
+            self.addImagesAndUpdateState(image_results.items);
                  
-                 var hasNextPageStartIndex =    image_results.hasOwnProperty("queries") &&     
+                    var hasNextPageStartIndex = image_results.hasOwnProperty("queries") &&     
                                                 image_results.queries.hasOwnProperty("nextPage") && 
                                                 image_results.queries.nextPage.length > 0 && 
                                                 image_results.queries.nextPage[0].hasOwnProperty("startIndex");
-                 var startIndex = hasNextPageStartIndex ? image_results.queries.nextPage[0].startIndex : self.state.startIndex;
-                 self.setState({startIndex: startIndex, moreImagesBtnVisible: hasNextPageStartIndex});
-             } else {
-                 self.show_error_message();
-             }       
-         } else {
-             self.show_error_message();
-         }
-     };
-     request.onerror = () => self.show_error_message();
-     request.send();
+                    var startIndex = hasNextPageStartIndex ? image_results.queries.nextPage[0].startIndex : self.state.startIndex;
+                    self.setState({startIndex: startIndex, moreImagesBtnVisible: hasNextPageStartIndex});
+     });
   }
     
   addImagesAndUpdateState(items) {
@@ -113,7 +122,7 @@ class App extends Component {
   }
     
   show_error_message() {
-    this.setState({errorMessageVisible: false});
+    this.setState({searching: false, errorMessageVisible: true});
   }
     
   render() {
@@ -135,6 +144,8 @@ class App extends Component {
                 We&rsquo;re sorry, images can not be loaded right now. Please wait and try again.
             </div>
         }
+
+        {this.state.searching && <LoadingIndicator />}
     
         {this.state.moreImagesBtnVisible &&
             <div><button id="more-images" className="btn" onClick={this.moreImages}>+ More Images</button></div>
