@@ -17,7 +17,9 @@ export default class Lightbox extends Component {
     
   render() {
     return (
-        <div id="lightbox" style={{backgroundImage: 'url('+this.props.image.image+')'}}>
+        <div id="lightbox" 
+             className={this.props.currentImageLarge && "fit-on-screen"} 
+             style={{backgroundImage: 'url('+this.props.image.image+')'}}>
             {this.props.hasPreviousImage &&
             <nav id="prev" onClick={this.props.viewPreviousImage}>
                 <svg className="lightbox-icon" viewBox="0 0 48 13" xmlns="http://www.w3.org/2000/svg">

@@ -11,6 +11,10 @@ var query_params = ['searchType=image'];
 query_params.push('key='+GCSE_KEY);
 query_params.push('cx='+GCSE_CX);
 
+    function is_larger_than_window(img) {
+        return (img.naturalHeight > window.innerHeight) || (img.naturalWidth > window.innerWidth);
+    }
+
 
 
 class App extends Component {
@@ -22,7 +26,8 @@ class App extends Component {
       errorMessageVisible: false,
       currentImageIndex: null,
       startIndex: 1,
-      images: []
+      images: [],
+      currentImageLarge: false
     };
       
     this.openLightbox = this.openLightbox.bind(this);
@@ -37,7 +42,7 @@ class App extends Component {
   }
     
   openLightbox(image) {
-    this.setState({lightboxVisible: true, currentImageIndex: image.key});
+    this.viewInLightbox(image.key);
   }
     
   closeLightbox() {
@@ -45,13 +50,23 @@ class App extends Component {
   }
     
   viewPreviousImage() {
-    this.setState({currentImageIndex: this.state.currentImageIndex-1});
+    this.viewInLightbox(this.state.currentImageIndex-1);
   }
   
   viewNextImage() {
-    this.setState({currentImageIndex: this.state.currentImageIndex+1});
+    this.viewInLightbox(this.state.currentImageIndex+1);
   }
-  
+    
+  viewInLightbox(imageIndex) {
+      var self = this;
+      this.setState({lightboxVisible: true, currentImageIndex: imageIndex}, () => self.shrinkLargeImage());
+  }
+    
+  shrinkLargeImage() {
+      var currentImage = this.thumbnailsDiv.children[this.state.currentImageIndex].children[0];
+      this.setState({currentImageLarge: is_larger_than_window(currentImage)});
+  }
+    
   moreImages() {
      if (this.state.errorMessageVisible)
          this.setState({errorMessageVisible: false});
@@ -62,7 +77,6 @@ class App extends Component {
      var self = this;
 
      var request = new XMLHttpRequest();
-      console.log(temp_query_params.join('&'));
      request.open('GET', GCSE_URI+'?'+temp_query_params.join('&'), true);
      request.onload = function() {
          if (request.status >= 200 && request.status < 400) {
@@ -112,7 +126,7 @@ class App extends Component {
         <h1>React Lightbox</h1>
         <h2>&ldquo;{this.props.searchTerm}&rdquo;</h2>
     
-        <div id="thumbnails" className="clearfix">
+        <div id="thumbnails" className="clearfix" ref={(thumbnailsDiv) => { this.thumbnailsDiv = thumbnailsDiv; }}>
             {renderThumbnails}
         </div>
     
@@ -133,6 +147,7 @@ class App extends Component {
                 closeLightbox={this.closeLightbox} 
                 hasNextImage={this.state.currentImageIndex < this.state.images.length-1}
                 hasPreviousImage={this.state.currentImageIndex > 0}
+                currentImageLarge={this.state.currentImageLarge}
             />
         }
         <form className="search-form" method="get">
