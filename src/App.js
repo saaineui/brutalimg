@@ -19,6 +19,17 @@ Promise.config({ longStackTraces: true, warnings: true });
         return (img.naturalHeight > window.innerHeight) || (img.naturalWidth > window.innerWidth);
     }
 
+    function ajaxGetAsync(url) {
+        return new Promise(function (resolve, reject) {
+            var xhr = new XMLHttpRequest();
+            xhr.addEventListener("error", reject);
+            xhr.addEventListener("load", resolve);
+            xhr.open("GET", url);
+            xhr.send(null);
+        });
+    }
+
+
 
 
 class App extends Component {
@@ -82,32 +93,30 @@ class App extends Component {
      temp_query_params.push('start='+this.state.startIndex.toString());
      var self = this;
 
-     var promise = new Promise(function (resolve, reject) {
-        var request = new XMLHttpRequest();       
-        request.addEventListener("error", reject);
-        request.addEventListener("load", resolve);
-        request.open('GET', GCSE_URI+'?'+temp_query_params.join('&'), true);
-        request.send();
-     });
-      
-     promise.then(function(request){
-            if (request.status >= 200 && request.status < 400) 
-                return request.responseText;
+     ajaxGetAsync(GCSE_URI+'?'+temp_query_params.join('&'))
+     .then(function(e){
+         return e.currentTarget;
      })
-     .then(function(responseText){ return JSON.parse(responseText); })
+     .then(function(xhr){
+         if (xhr.status >= 200 && xhr.status < 400) 
+             return xhr.responseText;
+     })
+     .then(function(responseText){ 
+         return JSON.parse(responseText); 
+     })
      .then(function(image_results){
-            if (image_results.hasOwnProperty("items"))
-                return image_results;
+         if (image_results.hasOwnProperty("items"))
+             return image_results;
      })
      .then(function(image_results){
             self.addImagesAndUpdateState(image_results.items);
                  
-                    var hasNextPageStartIndex = image_results.hasOwnProperty("queries") &&     
-                                                image_results.queries.hasOwnProperty("nextPage") && 
-                                                image_results.queries.nextPage.length > 0 && 
-                                                image_results.queries.nextPage[0].hasOwnProperty("startIndex");
-                    var startIndex = hasNextPageStartIndex ? image_results.queries.nextPage[0].startIndex : self.state.startIndex;
-                    self.setState({startIndex: startIndex, moreImagesBtnVisible: hasNextPageStartIndex});
+            var hasNextPageStartIndex = image_results.hasOwnProperty("queries") &&     
+                                        image_results.queries.hasOwnProperty("nextPage") && 
+                                        image_results.queries.nextPage.length > 0 && 
+                                        image_results.queries.nextPage[0].hasOwnProperty("startIndex");
+            var startIndex = hasNextPageStartIndex ? image_results.queries.nextPage[0].startIndex : self.state.startIndex;
+            self.setState({startIndex: startIndex, moreImagesBtnVisible: hasNextPageStartIndex});
      });
   }
     
