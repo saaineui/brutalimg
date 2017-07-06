@@ -83,11 +83,8 @@ class App extends Component {
       this.setState({currentImageLarge: is_larger_than_window(currentImage)});
   }
     
-  newSearch() {
-      this.setState({errorMessageVisible: false, searching: true}, () => this.moreImages());
-  }
-    
   moreImages() {
+     this.setState({errorMessageVisible: false, searching: true});
      var temp_query_params = [].concat(query_params);
      temp_query_params.push('q='+this.props.searchTerm);
      temp_query_params.push('start='+this.state.startIndex.toString());
@@ -98,15 +95,13 @@ class App extends Component {
          return e.currentTarget;
      })
      .then(function(xhr){
-         if (xhr.status >= 200 && xhr.status < 400) 
-             return xhr.responseText;
+         return (xhr.status >= 200 && xhr.status < 400) ? xhr.responseText : new Error();
      })
      .then(function(responseText){ 
          return JSON.parse(responseText); 
      })
      .then(function(image_results){
-         if (image_results.hasOwnProperty("items"))
-             return image_results;
+         return (image_results.hasOwnProperty("items")) ? image_results : new Error();
      })
      .then(function(image_results){
             self.addImagesAndUpdateState(image_results.items);
@@ -117,6 +112,12 @@ class App extends Component {
                                         image_results.queries.nextPage[0].hasOwnProperty("startIndex");
             var startIndex = hasNextPageStartIndex ? image_results.queries.nextPage[0].startIndex : self.state.startIndex;
             self.setState({startIndex: startIndex, moreImagesBtnVisible: hasNextPageStartIndex});
+     })
+     .catch(function(e) {
+         self.show_error_message();
+     })
+     .finally(function(){
+         self.setState({searching: false});
      });
   }
     
@@ -131,7 +132,7 @@ class App extends Component {
   }
     
   show_error_message() {
-    this.setState({searching: false, errorMessageVisible: true});
+    this.setState({errorMessageVisible: true});
   }
     
   render() {
@@ -156,7 +157,7 @@ class App extends Component {
 
         {this.state.searching && <LoadingIndicator />}
     
-        {this.state.moreImagesBtnVisible &&
+        {this.state.moreImagesBtnVisible && !this.state.searching &&
             <div><button id="more-images" className="btn" onClick={this.moreImages}>+ More Images</button></div>
         }
         {this.state.lightboxVisible && 
