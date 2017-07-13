@@ -14,7 +14,7 @@ function getQueryVariable(variable) {
        return(false);
 }
 
-var searchTerm = getQueryVariable("searchTerm") || "space cats";
+var searchTerm = getQueryVariable("searchTerm") || "";
 
 ReactDOM.render(
   <App searchTerm={searchTerm} />,

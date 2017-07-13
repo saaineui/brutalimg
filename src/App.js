@@ -4,9 +4,11 @@ import Lightbox from './Lightbox';
 import LoadingIndicator from './LoadingIndicator';
 import './App.css';
 
+var sjcl = require("sjcl");
+
 const GCSE_URI = 'https://www.googleapis.com/customsearch/v1';
-const GCSE_CX = 'redacted';
-const GCSE_KEY = 'redacted';
+const GCSE_CX = sjcl.codec.utf8String.fromBits([808466488, 842347571, 925971250, 859257138, 925905975, 960128108, 1970878063, 1802266471, 8798055956480]); 
+const GCSE_KEY = sjcl.codec.utf8String.fromBits([1095334497, 1400456275, 1934640474, 1162368360, 1514432111, 1196963688, 1800761931, 929510723, 1417114183, 26389423142912]); 
 
 var query_params = ['searchType=image'];
 query_params.push('key='+GCSE_KEY);
@@ -83,7 +85,12 @@ class App extends Component {
       this.setState({currentImageLarge: is_larger_than_window(currentImage)});
   }
     
+  hasSearchTerm() {
+      return this.props.searchTerm !== "";
+  }
+    
   moreImages() {
+    if (this.hasSearchTerm()) {
      this.setState({errorMessageVisible: false, searching: true});
      var temp_query_params = [].concat(query_params);
      temp_query_params.push('q='+this.props.searchTerm);
@@ -119,6 +126,7 @@ class App extends Component {
      .finally(function(){
          self.setState({searching: false});
      });
+    }
   }
     
   addImagesAndUpdateState(items) {
@@ -142,8 +150,11 @@ class App extends Component {
     
     return (
       <div className="App">
-        <h1>React Lightbox</h1>
-        <h2>&ldquo;{this.props.searchTerm}&rdquo;</h2>
+        <h1><a href="/">brutalism</a></h1>
+        <h2>Life is brutal, image search shouldn&rsquo;t be</h2>
+        {this.hasSearchTerm() &&
+            <h3>&ldquo;{this.props.searchTerm}&rdquo;</h3>
+        }
     
         <div id="thumbnails" className="clearfix" ref={(thumbnailsDiv) => { this.thumbnailsDiv = thumbnailsDiv; }}>
             {renderThumbnails}
@@ -157,7 +168,7 @@ class App extends Component {
 
         {this.state.searching && <LoadingIndicator />}
     
-        {this.state.moreImagesBtnVisible && !this.state.searching &&
+        {this.state.moreImagesBtnVisible && this.hasSearchTerm() && !this.state.searching &&
             <div><button id="more-images" className="btn" onClick={this.moreImages}>+ More Images</button></div>
         }
         {this.state.lightboxVisible && 
