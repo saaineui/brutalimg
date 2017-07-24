@@ -1,5 +1,7 @@
 # brutalimg
 
+<img src="https://travis-ci.org/saaineui/brutalimg.svg?branch=master" />
+
 Super fast image search powered by Google wrapped in a simple and pretty React UI.
 
 Wrote it to refresh/update my React knowledge, but started using it regularly as an image search tool so sharing it here.
