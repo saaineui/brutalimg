@@ -151,7 +151,7 @@ class App extends Component {
     return (
       <div className="App">
         <h1><a href="/">brutalism</a></h1>
-        <h2>Life is brutal, image search shouldn&rsquo;t be</h2>
+        <h2>brutally simple image search</h2>
         {this.hasSearchTerm() &&
             <h3>&ldquo;{this.props.searchTerm}&rdquo;</h3>
         }
