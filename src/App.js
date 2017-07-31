@@ -24,7 +24,7 @@ Promise.config({ longStackTraces: true, warnings: true });
     function ajaxGetAsync(url) {
         return new Promise(function (resolve, reject) {
             var xhr = new XMLHttpRequest();
-            xhr.addEventListener("error", reject);
+            xhr.addEventListener("error", () => reject(new Error("Could not connect to GCSE")));
             xhr.addEventListener("load", resolve);
             xhr.open("GET", url);
             xhr.send(null);
@@ -102,14 +102,9 @@ class App extends Component {
          return e.currentTarget;
      })
      .then(function(xhr){
-         return (xhr.status >= 200 && xhr.status < 400) ? xhr.responseText : new Error();
+         return xhr.responseText;
      })
-     .then(function(responseText){ 
-         return JSON.parse(responseText); 
-     })
-     .then(function(image_results){
-         return (image_results.hasOwnProperty("items")) ? image_results : new Error();
-     })
+     .then(JSON.parse)
      .then(function(image_results){
             self.addImagesAndUpdateState(image_results.items);
                  
@@ -120,7 +115,8 @@ class App extends Component {
             var startIndex = hasNextPageStartIndex ? image_results.queries.nextPage[0].startIndex : self.state.startIndex;
             self.setState({startIndex: startIndex, moreImagesBtnVisible: hasNextPageStartIndex});
      })
-     .catch(function(e) {
+     .catch(Error, function(e) {
+         console.error(e.message);
          self.show_error_message();
      })
      .finally(function(){
