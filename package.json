@@ -4,13 +4,13 @@
   "private": true,
   "dependencies": {
     "bluebird": "^3.5.0",
+    "prop-types": "^15.5.10",
     "react": "^15.6.1",
     "react-dom": "^15.6.1",
     "react-scripts": "0.9.5",
     "sjcl": "1.0.7"
   },
-  "devDependencies": {
-  },
+  "devDependencies": {},
   "engines": {
     "node": "8.1.4"
   },
