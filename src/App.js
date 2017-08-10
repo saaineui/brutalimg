@@ -5,32 +5,36 @@ import LoadingIndicator from './LoadingIndicator';
 import './App.css';
 import PropTypes from 'prop-types';
 
-var sjcl = require('sjcl');
+export function build_query_params() {
+  let sjcl = require('sjcl');
+
+  const GCSE_CX = sjcl.codec.utf8String.fromBits([808466488, 842347571, 925971250, 859257138, 925905975, 960128108, 1970878063, 1802266471, 8798055956480]);
+  const GCSE_KEY = sjcl.codec.utf8String.fromBits([1095334497, 1400456275, 1934640474, 1162368360, 1514432111, 1196963688, 1800761931, 929510723, 1417114183, 26389423142912]);
+
+  let query_params = ['searchType=image'];
+  query_params.push('key=' + GCSE_KEY);
+  query_params.push('cx=' + GCSE_CX);
+  return query_params;
+}
+
+export function is_larger_than_window(img) {
+  return (img.naturalHeight > window.innerHeight) || (img.naturalWidth > window.innerWidth);
+}
+
+export function ajaxGetAsync(url) {
+  var Promise = require('bluebird');
+  Promise.config({ longStackTraces: true, warnings: true });
+  return new Promise(function (resolve, reject) {
+    var xhr = new XMLHttpRequest();
+    xhr.addEventListener('error', () => reject(new Error('Could not connect to GCSE')));
+    xhr.addEventListener('load', resolve);
+    xhr.open('GET', url);
+    xhr.send(null);
+  });
+}
 
 const GCSE_URI = 'https://www.googleapis.com/customsearch/v1';
-const GCSE_CX = sjcl.codec.utf8String.fromBits([808466488, 842347571, 925971250, 859257138, 925905975, 960128108, 1970878063, 1802266471, 8798055956480]);
-const GCSE_KEY = sjcl.codec.utf8String.fromBits([1095334497, 1400456275, 1934640474, 1162368360, 1514432111, 1196963688, 1800761931, 929510723, 1417114183, 26389423142912]);
-
-var query_params = ['searchType=image'];
-query_params.push('key=' + GCSE_KEY);
-query_params.push('cx=' + GCSE_CX);
-
-var Promise = require('bluebird');
-Promise.config({ longStackTraces: true, warnings: true });
-
-  function is_larger_than_window(img) {
-    return (img.naturalHeight > window.innerHeight) || (img.naturalWidth > window.innerWidth);
-  }
-
-  function ajaxGetAsync(url) {
-    return new Promise(function (resolve, reject) {
-      var xhr = new XMLHttpRequest();
-      xhr.addEventListener('error', () => reject(new Error('Could not connect to GCSE')));
-      xhr.addEventListener('load', resolve);
-      xhr.open('GET', url);
-      xhr.send(null);
-    });
-  }
+const query_params = build_query_params();
 
 
 class App extends Component {
@@ -89,14 +93,15 @@ class App extends Component {
   }
 
   moreImages() {
+    let query_params_with_search = query_params.slice(0);
+
     if (this.hasSearchTerm()) {
       this.setState({errorMessageVisible: false, searching: true});
-      var temp_query_params = [].concat(query_params);
-      temp_query_params.push('q=' + this.props.searchTerm);
-      temp_query_params.push('start=' + this.state.startIndex.toString());
+      query_params_with_search.push('q=' + this.props.searchTerm);
+      query_params_with_search.push('start=' + this.state.startIndex.toString());
       var self = this;
 
-      ajaxGetAsync(GCSE_URI + '?' + temp_query_params.join('&'))
+      ajaxGetAsync(GCSE_URI + '?' + query_params_with_search.join('&'))
       .then(function(e){
          return e.currentTarget;
       })
