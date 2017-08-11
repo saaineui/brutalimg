@@ -6,14 +6,9 @@ import './App.css';
 import PropTypes from 'prop-types';
 
 export function build_query_params() {
-  let sjcl = require('sjcl');
-
-  const GCSE_CX = sjcl.codec.utf8String.fromBits([808466488, 842347571, 925971250, 859257138, 925905975, 960128108, 1970878063, 1802266471, 8798055956480]);
-  const GCSE_KEY = sjcl.codec.utf8String.fromBits([1095334497, 1400456275, 1934640474, 1162368360, 1514432111, 1196963688, 1800761931, 929510723, 1417114183, 26389423142912]);
-
-  let query_params = ['searchType=image'];
-  query_params.push('key=' + GCSE_KEY);
-  query_params.push('cx=' + GCSE_CX);
+  var query_params = ['searchType=image'];
+  query_params.push('key=' + process.env.REACT_APP_GCSE_KEY);
+  query_params.push('cx=' + process.env.REACT_APP_GCSE_CX);
   return query_params;
 }
 
@@ -33,8 +28,8 @@ export function ajaxGetAsync(url) {
   });
 }
 
-const GCSE_URI = 'https://www.googleapis.com/customsearch/v1';
-const query_params = build_query_params();
+var GCSE_URI = 'https://www.googleapis.com/customsearch/v1';
+var query_params = build_query_params();
 
 
 class App extends Component {
@@ -93,7 +88,7 @@ class App extends Component {
   }
 
   moreImages() {
-    let query_params_with_search = query_params.slice(0);
+    var query_params_with_search = query_params.slice(0);
 
     if (this.hasSearchTerm()) {
       this.setState({errorMessageVisible: false, searching: true});
