@@ -1,12 +1,15 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './App';
-import { Utils } from './utils';
+import * as utils from './utils';
 import './index.css';
 
-var searchTerm = Utils.getQueryVariable(window.location, 'searchTerm') || '';
+var searchTerm = utils.findInQueryString(window.location, 'searchTerm') || '';
 
 ReactDOM.render(
-  <App searchTerm={decodeURI(searchTerm)} />,
+  <App
+    searchTerm={decodeURI(searchTerm)}
+    apiURI='https://www.googleapis.com/customsearch/v1'
+  />,
   document.getElementById('root')
 );

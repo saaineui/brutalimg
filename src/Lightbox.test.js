@@ -20,7 +20,7 @@ it('renders without crashing', () => {
   ReactDOM.render(lightbox_tag, div);
 });
 
-it('auto-filled searchTerm triggers searching', () => {
+it('clicking title box toggles its visibility', () => {
   const testLightbox = mount(lightbox_tag);
   expect(testLightbox.state().titleVisible).toBe(false);
 

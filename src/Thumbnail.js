@@ -6,7 +6,7 @@ export default class Thumbnail extends Component {
     return (
         <div className="thumbnail" onClick={() => this.props.openLightbox(this.props.image)}>
             <img
-                src={this.props.image.image}
+                src={this.props.image.src}
                 alt={this.props.image.title}
                 className={this.props.image.landscape && 'landscape'}
             />

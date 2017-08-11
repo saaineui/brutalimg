@@ -12,15 +12,15 @@ export default class Lightbox extends Component {
   }
 
   toggleTitle() {
-    var currentTitleVisible = this.state.titleVisible;
-    this.setState({titleVisible: !currentTitleVisible});
+    let titleVisible = this.state.titleVisible;
+    this.setState({titleVisible: !titleVisible});
   }
 
   render() {
     return (
       <div id="lightbox"
            className={this.props.currentImageLarge && 'fit-on-screen'}
-           style={{backgroundImage: 'url(' + this.props.image.image + ')'}}
+           style={{backgroundImage: 'url(' + this.props.image.src + ')'}}
       >
           {this.props.hasPreviousImage &&
           <nav id="prev" onClick={this.props.viewPreviousImage}>

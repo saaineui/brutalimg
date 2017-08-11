@@ -2,44 +2,21 @@ import React, { Component } from 'react';
 import Thumbnail from './Thumbnail';
 import Lightbox from './Lightbox';
 import LoadingIndicator from './LoadingIndicator';
+import * as utils from './utils';
 import './App.css';
 import PropTypes from 'prop-types';
 
-export function build_query_params() {
-  var query_params = ['searchType=image'];
-  query_params.push('key=' + process.env.REACT_APP_GCSE_KEY);
-  query_params.push('cx=' + process.env.REACT_APP_GCSE_CX);
-  return query_params;
-}
-
-export function is_larger_than_window(img) {
-  return (img.naturalHeight > window.innerHeight) || (img.naturalWidth > window.innerWidth);
-}
-
-export function ajaxGetAsync(url) {
-  var Promise = require('bluebird');
-  Promise.config({ longStackTraces: true, warnings: true });
-  return new Promise(function (resolve, reject) {
-    var xhr = new XMLHttpRequest();
-    xhr.addEventListener('error', () => reject(new Error('Could not connect to GCSE')));
-    xhr.addEventListener('load', resolve);
-    xhr.open('GET', url);
-    xhr.send(null);
-  });
-}
-
-var GCSE_URI = 'https://www.googleapis.com/customsearch/v1';
-var query_params = build_query_params();
-
+const Promise = require('bluebird');
 
 class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
       lightboxVisible: false,
-      moreImagesBtnVisible: true,
+      moreImagesBtnVisible: false,
       errorMessageVisible: false,
       currentImageIndex: null,
+      queryParams: utils.buildQueryParams().concat('q=' + props.searchTerm),
       startIndex: 1,
       images: [],
       currentImageLarge: false,
@@ -50,11 +27,62 @@ class App extends Component {
     this.closeLightbox = this.closeLightbox.bind(this);
     this.viewPreviousImage = this.viewPreviousImage.bind(this);
     this.viewNextImage = this.viewNextImage.bind(this);
-    this.moreImages = this.moreImages.bind(this);
+    this.search = this.search.bind(this);
   }
 
   componentDidMount() {
-    this.moreImages();
+    this.hasSearchTerm() && this.search();
+  }
+
+  hasSearchTerm() {
+    return (typeof this.props.searchTerm === 'string') && this.props.searchTerm !== '';
+  }
+
+  search() {
+    this.setState({ moreImagesBtnVisible: false, errorMessageVisible: false, searching: true });
+    let query_params = this.state.queryParams.slice(0);
+    query_params.push('start=' + this.state.startIndex.toString());
+
+    var self = this;
+
+    utils.ajaxGetAsync(Promise, this.props.apiURI + '?' + query_params.join('&'))
+      .then(e => e.currentTarget)
+      .then(xhr => xhr.responseText)
+      .then(JSON.parse)
+      .then((search_results) => {
+        self.addImagesAndUpdateState(search_results.items);
+        utils.updateStartIndex(search_results) &&
+          self.setState({ startIndex: search_results.queries.nextPage[0].startIndex, moreImagesBtnVisible: true });
+      })
+      .catch(Error, (e) => {
+        console.error(e.message);
+        self.showErrorMessage();
+        self.hasMoreImages() && self.setState({ moreImagesBtnVisible: true });
+      })
+      .finally(() => { self.setState({ searching: false }); });
+  }
+
+  addImagesAndUpdateState(items) {
+    var images = this.state.images;
+    items.forEach(item => {
+      var image = {
+        key: images.length,
+        src: item.link,
+        title: item.title,
+        landscape: item.image.height < item.image.width
+      };
+      images.push(image);
+    });
+
+    this.setState({ images: images });
+  }
+
+  showErrorMessage() {
+    this.setState({ errorMessageVisible: true });
+  }
+
+  hasMoreImages() {
+    return this.state.startIndex > this.state.images.length;
   }
 
   openLightbox(image) {
@@ -62,7 +90,7 @@ class App extends Component {
   }
 
   closeLightbox() {
-    this.setState({lightboxVisible: false});
+    this.setState({ lightboxVisible: false });
   }
 
   viewPreviousImage() {
@@ -75,67 +103,12 @@ class App extends Component {
 
   viewInLightbox(imageIndex) {
     var self = this;
-    this.setState({lightboxVisible: true, currentImageIndex: imageIndex}, () => self.shrinkLargeImage());
+    this.setState({ lightboxVisible: true, currentImageIndex: imageIndex }, () => self.shrinkLargeImage());
   }
 
   shrinkLargeImage() {
     var currentImage = this.thumbnailsDiv.children[this.state.currentImageIndex].children[0];
-    this.setState({currentImageLarge: is_larger_than_window(currentImage)});
-  }
-
-  hasSearchTerm() {
-    return this.props.searchTerm !== '';
-  }
-
-  moreImages() {
-    var query_params_with_search = query_params.slice(0);
-
-    if (this.hasSearchTerm()) {
-      this.setState({errorMessageVisible: false, searching: true});
-      query_params_with_search.push('q=' + this.props.searchTerm);
-      query_params_with_search.push('start=' + this.state.startIndex.toString());
-      var self = this;
-
-      ajaxGetAsync(GCSE_URI + '?' + query_params_with_search.join('&'))
-      .then(function(e){
-         return e.currentTarget;
-      })
-      .then(function(xhr){
-         return xhr.responseText;
-      })
-      .then(JSON.parse)
-      .then(function(image_results){
-        self.addImagesAndUpdateState(image_results.items);
-
-        var hasNextPageStartIndex = image_results.hasOwnProperty('queries') &&
-                                    image_results.queries.hasOwnProperty('nextPage') &&
-                                    image_results.queries.nextPage.length > 0 &&
-                                    image_results.queries.nextPage[0].hasOwnProperty('startIndex');
-        var startIndex = hasNextPageStartIndex ? image_results.queries.nextPage[0].startIndex : self.state.startIndex;
-        self.setState({startIndex: startIndex, moreImagesBtnVisible: hasNextPageStartIndex});
-      })
-      .catch(Error, function(e) {
-       console.error(e.message);
-       self.show_error_message();
-      })
-      .finally(function(){
-       self.setState({searching: false});
-      });
-    }
-  }
-
-  addImagesAndUpdateState(items) {
-    var images = this.state.images;
-    items.forEach(item => {
-      var image = {key: images.length, image: item.link, title: item.title, landscape: item.image.height < item.image.width};
-      images.push(image);
-    });
-
-    this.setState({images: images});
-  }
-
-  show_error_message() {
-    this.setState({errorMessageVisible: true});
+    this.setState({ currentImageLarge: utils.largerThanWindow(currentImage) });
   }
 
   render() {
@@ -163,8 +136,8 @@ class App extends Component {
 
         {this.state.searching && <LoadingIndicator />}
 
-        {this.state.moreImagesBtnVisible && this.hasSearchTerm() && !this.state.searching &&
-            <div><button id="more-images" className="btn" onClick={this.moreImages}>+ More Images</button></div>
+        {this.state.moreImagesBtnVisible &&
+            <div><button id="more-images" className="btn" onClick={this.search}>+ More Images</button></div>
         }
         {this.state.lightboxVisible &&
             <Lightbox
@@ -184,13 +157,14 @@ class App extends Component {
                 <input type="submit" value="Search" className="btn" />
             </label>
         </form>
-    </div>
+      </div>
     );
   }
 }
 
 App.propTypes = {
-  searchTerm: PropTypes.string.isRequired
+  searchTerm: PropTypes.string.isRequired,
+  apiURI: PropTypes.string.isRequired
 };
 
 export default App;
