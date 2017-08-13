@@ -63,16 +63,14 @@ class App extends Component {
   }
 
   addImagesAndUpdateState(items) {
-    var images = this.state.images;
-    items.forEach(item => {
-      var image = {
-        key: images.length,
+    var images = this.state.images.concat(items.map((item, index) => {
+      return {
+        index: this.state.images.length + index,
         src: item.link,
         title: item.title,
         landscape: item.image.height < item.image.width
       };
-      images.push(image);
-    });
+    }));
 
     this.setState({ images: images });
   }
@@ -85,8 +83,21 @@ class App extends Component {
     return this.state.startIndex > this.state.images.length;
   }
 
+  hasNextImage() {
+    return this.hasCurrentImageIndex() &&
+      this.state.currentImageIndex < this.state.images.length - 1;
+  }
+
+  hasPreviousImage() {
+    return this.hasCurrentImageIndex() && this.state.currentImageIndex > 0;
+  }
+
+  hasCurrentImageIndex() {
+    return typeof this.state.currentImageIndex === 'number';
+  }
+
   openLightbox(image) {
-    this.viewInLightbox(image.key);
+    this.viewInLightbox(image.index);
   }
 
   closeLightbox() {
@@ -120,9 +131,7 @@ class App extends Component {
       <div className="App">
         <h1><a href="/">brutalimg</a></h1>
         <h2>brutally simple image search</h2>
-        {this.hasSearchTerm() &&
-            <h3>&ldquo;{this.props.searchTerm}&rdquo;</h3>
-        }
+        {this.hasSearchTerm() && <h3>&ldquo;{this.props.searchTerm}&rdquo;</h3>}
 
         <div id="thumbnails" className="clearfix" ref={(thumbnailsDiv) => { this.thumbnailsDiv = thumbnailsDiv; }}>
             {renderThumbnails}
@@ -139,18 +148,20 @@ class App extends Component {
         {this.state.moreImagesBtnVisible &&
             <div><button id="more-images" className="btn" onClick={this.search}>+ More Images</button></div>
         }
+
         {this.state.lightboxVisible &&
             <Lightbox
                 image={this.state.images[this.state.currentImageIndex]}
                 viewNextImage={this.viewNextImage}
                 viewPreviousImage={this.viewPreviousImage}
                 closeLightbox={this.closeLightbox}
-                hasNextImage={this.state.currentImageIndex < this.state.images.length - 1}
-                hasPreviousImage={this.state.currentImageIndex > 0}
+                hasNextImage={this.hasNextImage()}
+                hasPreviousImage={this.hasPreviousImage()}
                 currentImageLarge={this.state.currentImageLarge}
             />
         }
-        <form className="search-form" method="get">
+
+         <form className="search-form" method="get">
             <label htmlFor="searchTerm">
                 Search for images related to:
                 <input type="text" name="searchTerm" />

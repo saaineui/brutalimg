@@ -13,8 +13,11 @@ const app_simple = <App searchTerm={search_terms.simple} apiURI={api_uri} />;
 const app_symbols = <App searchTerm={search_terms.symbols} apiURI={api_uri} />;
 const items = [{ link: 'http://stephsun.com/image.png', title: 'Image title', image: { height: 100, width: 200 } },
                { link: 'http://stephsun.com/image2.png', title: 'Image 2 title', image: { height: 200, width: 100 } }];
+const more_items = [{ link: 'http://stephsun.com/image3.png', title: 'Image 3 title', image: { height: 100, width: 200 } },
+               { link: 'http://stephsun.com/image4.png', title: 'Image 4 title', image: { height: 200, width: 100 } }];
+const all_items = items.concat(more_items);
 const images = items.map((item, index) => {
-  return { key: index, src: item.link, title: item.title, landscape: item.image.width > item.image.height };
+  return { index: index, src: item.link, title: item.title, landscape: item.image.width > item.image.height };
 });
 const error_msg = (
                     <div id="errors">
@@ -89,12 +92,42 @@ describe('App unit tests', () => {
     expect(testApp.instance().hasSearchTerm()).toBe(true);
   });
 
-  it('#hasMoreImages returns true if startIndex is greater than images length', () => {
+  it('#hasMoreImages returns true if startIndex > images length', () => {
     const testApp = mount(app_blank);
     expect(testApp.instance().hasMoreImages()).toBe(true);
 
     testApp.setState({ images: images });
     expect(testApp.instance().hasMoreImages()).toBe(false);
+  });
+
+  it('#hasCurrentImageIndex returns true if currentImageIndex is not null', () => {
+    const testApp = mount(app_blank);
+    expect(testApp.instance().hasCurrentImageIndex()).toBe(false);
+
+    testApp.setState({ currentImageIndex: 1 });
+    expect(testApp.instance().hasCurrentImageIndex()).toBe(true);
+  });
+
+  it('#hasPreviousImage returns true iff focused image is image and not first image', () => {
+    const testApp = mount(app_blank);
+    expect(testApp.instance().hasPreviousImage()).toBe(false);
+
+    testApp.setState({ images: images, lightboxVisible: true, currentImageIndex: 1 });
+    expect(testApp.instance().hasPreviousImage()).toBe(true);
+
+    testApp.setState({ currentImageIndex: 0 });
+    expect(testApp.instance().hasPreviousImage()).toBe(false);
+  });
+
+  it('#hasNextImage returns true iff focused image is image and not last image', () => {
+    const testApp = mount(app_blank);
+    expect(testApp.instance().hasNextImage()).toBe(false);
+
+    testApp.setState({ images: images, lightboxVisible: true, currentImageIndex: 0 });
+    expect(testApp.instance().hasNextImage()).toBe(true);
+
+    testApp.setState({ currentImageIndex: 1 });
+    expect(testApp.instance().hasNextImage()).toBe(false);
   });
 
   it('#showErrorMessage displays error message', () => {
@@ -105,22 +138,25 @@ describe('App unit tests', () => {
     expect(testApp.contains(error_msg)).toBe(true);
   });
 
-  it('#addImagesAndUpdateState adds images to state and DOM', () => {
+  it('#addImagesAndUpdateState adds images to state and DOM with unique keys', () => {
+    const thumbnail_imgs = all_items.map(item => {
+      return (<img src={item.link} alt={item.title} className={item.image.width > item.image.height && 'landscape'} />);
+    });
     const testApp = mount(app_blank);
-    testApp.instance().addImagesAndUpdateState(items);
 
-    let thumbnail_imgs = images.map(image => {
-      return (<img
-                src={image.src}
-                alt={image.title}
-                className={image.landscape && 'landscape'}
-              />
-             );
+    testApp.instance().addImagesAndUpdateState(items); // add 2 images
+    thumbnail_imgs.forEach((thumb, index) => {
+      expect(testApp.contains(thumb)).toBe(index < items.length);
+    });
+    expect(testApp.find('.thumbnail')).toHaveLength(items.length); // 2
+
+    testApp.instance().addImagesAndUpdateState(more_items); // add 2 more images
+    expect(testApp.find('.thumbnail')).toHaveLength(all_items.length); // 4
+    thumbnail_imgs.forEach((thumb) => {
+      expect(testApp.contains(thumb)).toBe(true);
     });
 
-    expect(testApp.contains(thumbnail_imgs[0])).toBe(true);
-    expect(testApp.contains(thumbnail_imgs[1])).toBe(true);
-    expect(testApp.find('.thumbnail')).toHaveLength(2);
+    expect(testApp.state().images.map(image => image.index)).toEqual([0, 1, 2, 3]);
   });
 
   it('#search triggers search', () => {
@@ -191,5 +227,22 @@ describe('App integration tests', () => {
 
     testApp.find('#more-images').simulate('click');
     expect(testApp.state().searching).toBe(true);
+  });
+
+  it('after searching twice, clicking thumbnails open clicked image in Lightbox', () => {
+    const testApp = mount(app_simple);
+    testApp.instance().addImagesAndUpdateState(items); // add 2 images
+    testApp.instance().addImagesAndUpdateState(more_items); // add 2 more images
+    expect(testApp.state().currentImageIndex).toBe(null);
+
+    all_items.forEach((item, index) => {
+      testApp.find('.thumbnail').at(index).simulate('click');
+      expect(testApp.state().currentImageIndex).toBe(index);
+
+      if (index === 0) {
+        testApp.find('#image-title').simulate('click');
+      }
+      expect(testApp.find('#image-title').text()).toEqual(item.title);
+    });
   });
 });
