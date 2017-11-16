@@ -1,6 +1,6 @@
 # brutalimg
 
-<img src="https://travis-ci.org/saaineui/brutalimg.svg?branch=master" />
+[![View on Travis](https://travis-ci.org/saaineui/brutalimg.svg?branch=master)](https://travis-ci.org/saaineui/brutalimg)
 
 Super fast image search powered by Google wrapped in a simple and pretty React UI.
 
